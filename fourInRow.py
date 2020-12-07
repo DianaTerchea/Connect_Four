@@ -1,3 +1,6 @@
+import sys
+
+
 def create_board(rows, columns):
     res = [[0 for i in range(columns)] for j in range(rows)]
     return res
@@ -96,7 +99,7 @@ def is_final_state(board, row, column):
     return False
 
 
-def play_game(board):
+def player_vs_computer_game(board):
     turn = 0
     while True:
         if turn == 0:
@@ -106,22 +109,54 @@ def play_game(board):
 
         while True:
             selected_column = int(input("Give column: "))
-            if not is_valid_move(test_matrix, selected_column):
+            if not is_valid_move(board, selected_column):
                 selected_column = int(input("Give a valid column: "))
-                if is_valid_move(test_matrix, selected_column):
+                if is_valid_move(board, selected_column):
                     break
             else:
                 break
         if turn == 0:
-            _, row = make_move(test_matrix, selected_column, "P1")
-            print_board(test_matrix)
+            _, row = make_move(board, selected_column, "P1")
+            print_board(board)
             if is_final_state(board, row, selected_column):
                 print("Player1 wins.......")
                 break
             turn = 1
         else:
-            _, row = make_move(test_matrix, selected_column, "P2")
-            print_board(test_matrix)
+            _, row = make_move(board, selected_column, "P2")
+            print_board(board)
+            if is_final_state(board, row, selected_column):
+                print("Player2 wins.....")
+                break
+            turn = 0
+
+
+def player_vs_player_game(board):
+    turn = 0
+    while True:
+        if turn == 0:
+            print("Player 1 turn...")
+        else:
+            print("Player 2 turn...")
+
+        while True:
+            selected_column = int(input("Give column: "))
+            if not is_valid_move(board, selected_column):
+                selected_column = int(input("Give a valid column: "))
+                if is_valid_move(board, selected_column):
+                    break
+            else:
+                break
+        if turn == 0:
+            _, row = make_move(board, selected_column, "P1")
+            print_board(board)
+            if is_final_state(board, row, selected_column):
+                print("Player1 wins.......")
+                break
+            turn = 1
+        else:
+            _, row = make_move(board, selected_column, "P2")
+            print_board(board)
             if is_final_state(board, row, selected_column):
                 print("Player2 wins.....")
                 break
@@ -129,10 +164,25 @@ def play_game(board):
 
 
 if __name__ == '__main__':
-    print("Connect 4")
-    test_matrix = [[0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 'P1', 'P1', 0, 0, 0],
-                   [0, 'P1', 'P2', 'P2', 0, 0, 0],
-                   ['P1', 'P2', 'P2', 'P1', 0, 0, 0]]
-    play_game(test_matrix)
+    playerType = str(sys.argv[1])
+    rows = int(sys.argv[3])
+    columns = int(sys.argv[2])
+    while True:
+        if rows < 4:
+            rows = int(input(
+                "The number of rows should be at least 4. Please give a valid number of columns/rows... "))
+        elif columns < 4:
+            columns = int(input(
+                "The number of columns should be at least 4. Please give a valid number of columns... "))
+        else:
+            break
+    if len(sys.argv) < 5:
+        firstPlayer = "human"
+    else:
+        firstPlayer = str(sys.argv[4])
+
+    matrix = create_board(rows, columns)
+    if playerType == "human":
+        player_vs_player_game(matrix)
+    else:
+        player_vs_computer_game(matrix)
