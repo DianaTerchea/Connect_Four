@@ -1,28 +1,10 @@
 import pygame
 import math
 from fourInRow import *
-import time
-
-COLUMNS = 7
-ROWS = 6
-
-WINDOW_HEIGHT = 850
-WINDOW_WIDTH = 850
-CELL_WIDTH = WINDOW_WIDTH / COLUMNS
-CELL_HEIGHT = ((WINDOW_HEIGHT - 100) / ROWS)
-PIECE_RADIUS = (CELL_HEIGHT / 4)
-
-PIECE_COLOR = (140, 140, 140)
-BLUE = (40, 34, 100)
-YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+from constants import *
 
 
 def draw_board(screen):
-    print("Drawing initial table...")
     for c in range(COLUMNS):
         for r in range(ROWS):
             pygame.draw.rect(screen, BLUE,
@@ -32,31 +14,36 @@ def draw_board(screen):
 
 
 def draw_text_box(screen, text, box_color):
-    pygame.draw.rect(screen, box_color,
-                     pygame.Rect(0, 0, 200, 35))
     pygame.display.update()
-    font = pygame.font.SysFont('Arial', 25)
-    screen.blit(font.render(text, True, WHITE), (0, 0))
-    pygame.display.update()
-
-
-def draw_winning_screen(screen, text):
-    pygame.draw.rect(screen, BLACK,
-                     pygame.Rect(WINDOW_WIDTH / 2 - 100, WINDOW_HEIGHT / 2 - 100, 500, 500))
-    pygame.display.update()
-    font = pygame.font.SysFont('Arial', 25)
-    screen.blit(font.render(text, True, WHITE), (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
+    menu_font = pygame.font.Font('freesansbold.ttf', 30)
+    title = menu_font.render(text, True, box_color, BLACK)
+    titleRect = title.get_rect()
+    titleRect.topleft = (0, 0)
+    titleRect.width = WINDOW_WIDTH
+    titleRect.height = 50
+    pygame.draw.rect(screen, BLACK, titleRect)
+    screen.blit(title, titleRect)
     pygame.display.update()
 
 
-def graphic_game(board):
-    pygame.init()
-    screen = pygame.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
-    pygame.mouse.set_cursor(*pygame.cursors.diamond)
-    pygame.display.set_caption('CONNECT_4')
+def draw_winning_screen(display, text):
+    draw_text_box(display, "", BLACK)
+    menu_font = pygame.font.Font('freesansbold.ttf', 60)
+    title = menu_font.render(text, True, WHITE, BLACK)
+    titleRect = title.get_rect()
+    titleRect.center = (WINDOW_WIDTH // 2, 50)
+    display.blit(title, titleRect)
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+
+def game_mode(screen, board):
     draw_board(screen)
     draw_text_box(screen, "Player 1 turn...", YELLOW)
-
     running = True
     turn = 0
     while running:
@@ -66,8 +53,9 @@ def graphic_game(board):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 posy = math.floor(event.pos[0] / CELL_WIDTH)
                 if not is_valid_move(board, posy):
-                    draw_text_box(screen, "Invalid column...", RED)
-                    turn = (turn + 1) % 2
+                    draw_text_box(screen, "Invalid column.Please choose another one...", GREEN)
+                    # turn = (turn + 1) % 2
+                    continue
                 else:
                     posx = find_first_free_cell(board, posy)
 
@@ -77,8 +65,9 @@ def graphic_game(board):
                                        PIECE_RADIUS)
                     _, row = make_move(board, posy, "P1")
                     if is_final_state(board, row, posy):
+                        draw_text_box(screen, "Player 1 wins...", GREEN)
+                        pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
                         draw_winning_screen(screen, "Player 1 wins...")
-                        time.sleep(3)
                         break
                     else:
                         draw_text_box(screen, "Player 2 turn...", RED)
@@ -89,22 +78,12 @@ def graphic_game(board):
                                        PIECE_RADIUS)
                     _, row = make_move(board, posy, "P2")
                     if is_final_state(board, row, posy):
+                        draw_text_box(screen, "Player 2 wins...", GREEN)
+                        pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
                         draw_winning_screen(screen, "Player 2 wins...")
-                        time.sleep(3)
-                        running = False
+                        break
                     else:
                         draw_text_box(screen, "Player 1 turn...", YELLOW)
                         turn = 0
 
         pygame.display.flip()
-    pygame.quit()
-
-
-if __name__ == '__main__':
-    table = [[0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0]]
-    graphic_game(table)
