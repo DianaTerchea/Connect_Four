@@ -1,3 +1,9 @@
+from copy import deepcopy
+from random import randrange
+
+PLAYER_PIECE = 1
+
+
 def create_board(rows, columns):
     res = [[0 for i in range(columns)] for j in range(rows)]
     return res
@@ -98,3 +104,153 @@ def is_final_state(board, row, column):
 
 def is_board_full(board):
     return not any(0 in val for val in board)
+
+
+def compute_score(window, player_piece):
+    score = 0
+    if window.count(player_piece) == 4:
+        # is four in a row
+        score += 1000
+    elif window.count(player_piece) == 3 and window.count(0) == 1:
+        score += 100
+    if window.count(PLAYER_PIECE) == 3 and window.count(0) == 1:
+        score -= 900
+    return score
+
+
+def get_move_score(board, player_piece):
+    # compute score horizontal
+    score = 0
+    center_elements = [board[i][len(board[0]) // 2] for i in range(len(board))]
+    score += center_elements.count(player_piece) * 60
+
+    for row in board:
+        for column_count in range(len(board[0]) - 3):
+            window = row[column_count: column_count + 4]
+            score += compute_score(window, player_piece)
+    # compute score vertical
+    for column_index in range(len(board[0])):
+        column_elements = [board[i][column_index] for i in range(len(board))]
+        for row_count in range(len(board) - 3):
+            window = column_elements[row_count: row_count + 4]
+            score += compute_score(window, player_piece)
+    # compute score on diagonals
+    for row_index in range(len(board) - 3):
+        for column_index in range(len(board[0]) - 3):
+            window = [board[row_index + i][column_index + i] for i in range(4)]
+            score += compute_score(window, player_piece)
+    for row_index in range(len(board) - 3):
+        for column_index in range(len(board[0]) - 3):
+            window = [board[row_index + 3 - i][column_index + i] for i in range(4)]
+            score += compute_score(window, player_piece)
+    return score
+
+
+def pick_best_move(board, player_piece):
+    best_choice = randrange(len(board[0]))
+    best_score = -10000000
+    for picked_column in range(len(board[0])):
+        matrix_copy = deepcopy(board)
+        if is_valid_move(board, picked_column):
+            matrix_after_move, _ = make_move(matrix_copy, picked_column, player_piece)
+            score = get_move_score(matrix_after_move, player_piece)
+            if score > best_score:
+                best_choice = picked_column
+                best_score = score
+    return best_choice
+
+
+def is_terminal_node(board):
+    if is_board_full(board):
+        return True
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if is_final_state(board, i, j):
+                return True, i, j
+    return False
+
+
+def minimax(board, depth, alpha, beta, maximizing_player):
+    is_terminal, row, column = is_terminal_node(board)
+    if depth == 0 or is_terminal:
+        if is_terminal:
+            if board[row][column] == 2:
+                # computer wins
+                return None, 100000000000000
+            elif board[row][column] == 1:
+                # player wins
+                return None, -100000000000000
+            else:
+                return None, 0
+        else:
+            return None, get_move_score(board, 2)
+    if maximizing_player:  # computer
+        value = float('-inf')
+        col = randrange(len(board[0]))
+        available_moves = [column for column in range(len(board[0])) if is_valid_move(board, column) == True]
+        for column in available_moves:
+            board_copy = deepcopy(board)
+            make_move(board_copy, column, 2)
+            new_score, _ = minimax(board_copy, depth - 1, alpha, beta, False)
+            if new_score > value:
+                value = new_score
+                col = column
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
+        return col, value
+    else:
+        value = float('inf')
+        col = randrange(len(board[0]))
+        available_moves = [column for column in range(len(board[0])) if is_valid_move(board, column) == True]
+        for column in available_moves:
+            board_copy = deepcopy(board)
+            make_move(board_copy, column, 2)
+            new_score, _ = minimax(board_copy, depth - 1, alpha, beta, False)
+            if new_score < value:
+                value = new_score
+                col = column
+            beta = min(beta, value)
+            if alpha >= beta:
+                break
+        return col, value
+
+
+def play_game(board):
+    turn = 0
+    while True:
+        if turn == 0:
+            print("Player 1 turn...")
+            while True:
+                selected_column = int(input("Give column: "))
+                if not is_valid_move(board, selected_column):
+                    selected_column = int(input("Give a valid column: "))
+                    if is_valid_move(board, selected_column):
+                        break
+                else:
+                    break
+            _, row = make_move(board, selected_column, 1)
+            print_board(board)
+            if is_final_state(board, row, selected_column):
+                print("Player1 wins.......")
+                break
+            turn = 1
+        else:
+            print("Player 2 turn...")
+            selected_column, _ = minimax(board, 3, float('-inf'), float('inf'), True)
+            _, row = make_move(board, selected_column, 2)
+            print_board(board)
+            if is_final_state(board, row, selected_column):
+                print("Player2 wins.....")
+                break
+            turn = 0
+
+#
+# if __name__ == '__main__':
+#     test_matrix = [[0, 0, 0, 0, 0, 0, 0],
+#                    [0, 0, 0, 0, 0, 0, 0],
+#                    [0, 0, 0, 0, 0, 0, 0],
+#                    [0, 0, 0, 0, 1, 2, 0],
+#                    [2, 0, 1, 0, 2, 1, 2]]
+#     table = create_board(6, 7)
+#     play_game(table)
