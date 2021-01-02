@@ -74,11 +74,11 @@ def render_options_frame(display, board, gaming_mode, first_player, rows, column
                 quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[0].rect.collidepoint(pygame.mouse.get_pos()):
-                    render_game_frame(display, board, gaming_mode, first_player, rows, columns)
+                    render_computer_game_frame(display, board, gaming_mode, first_player, rows, columns)
                 elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()):
-                    render_game_frame(display, board, gaming_mode, first_player, rows, columns)
+                    render_computer_game_frame(display, board, gaming_mode, first_player, rows, columns, 6)
                 elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()):
-                    render_game_frame(display, board, gaming_mode, first_player, rows, columns)
+                    render_computer_game_frame(display, board, gaming_mode, first_player, rows, columns, 8)
             for option in buttons:
                 if option.rect.collidepoint(pygame.mouse.get_pos()):
                     option.hovered = True
@@ -139,6 +139,73 @@ def render_game_frame(screen, board, playing_mode, first_player=None, rows=4, co
                     continue
                 else:
                     posx = find_first_free_cell(board, posy)
+
+                pygame.draw.circle(screen, game_info_dict["piece_color"][turn],
+                                   (posy * CELL_WIDTH + CELL_WIDTH / 2, posx * CELL_HEIGHT + 100 + CELL_HEIGHT / 2),
+                                   PIECE_RADIUS)
+                _, row = make_move(board, posy, game_info_dict["piece"][turn])
+                if is_final_state(board, row, posy):
+                    pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
+                    draw_winning_frame(screen, game_info_dict["winning_captions"][turn])
+                    break
+                else:
+                    draw_text_box(screen, game_info_dict["turn_captions"][(turn + 1) % 2],
+                                  game_info_dict["piece_color"][(turn + 1) % 2])
+                    turn = (turn + 1) % 2
+        pygame.display.flip()
+    quit()
+
+
+def render_computer_game_frame(screen, board, playing_mode, first_player=None, rows=4, columns=4, difficulty=4):
+    CELL_WIDTH = WINDOW_WIDTH / columns
+    CELL_HEIGHT = ((WINDOW_HEIGHT - 100) / rows)
+    PIECE_RADIUS = (CELL_HEIGHT / 4)
+    if playing_mode == "human":
+        game_info_dict = get_game_info_dict("player")
+        turn = random.randint(0, 1)
+    else:
+        game_info_dict = get_game_info_dict("computer")
+        if first_player == "human":
+            turn = 0
+        else:
+            turn = 1
+
+    draw_board(screen, rows, columns)
+    draw_text_box(screen, game_info_dict["turn_captions"][turn], game_info_dict["piece_color"][turn])
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # draw when we have a full board
+            if is_board_full(board):
+                pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
+                draw_winning_frame(screen, "Draw")
+                break
+            if turn == 0:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    posy = math.floor(event.pos[0] / CELL_WIDTH)
+                    if not is_valid_move(board, posy):
+                        draw_text_box(screen, "Invalid column.Please choose another one...", GREEN)
+                        continue
+                    else:
+                        posx = find_first_free_cell(board, posy)
+
+                    pygame.draw.circle(screen, game_info_dict["piece_color"][turn],
+                                       (posy * CELL_WIDTH + CELL_WIDTH / 2, posx * CELL_HEIGHT + 100 + CELL_HEIGHT / 2),
+                                       PIECE_RADIUS)
+                    _, row = make_move(board, posy, game_info_dict["piece"][turn])
+                    if is_final_state(board, row, posy):
+                        pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
+                        draw_winning_frame(screen, game_info_dict["winning_captions"][turn])
+                        break
+                    else:
+                        draw_text_box(screen, game_info_dict["turn_captions"][(turn + 1) % 2],
+                                      game_info_dict["piece_color"][(turn + 1) % 2])
+                        turn = (turn + 1) % 2
+            elif turn == 1:
+                posy, _ = minimax(board, difficulty, float('-inf'), float('inf'), True)
+                posx = find_first_free_cell(board, posy)
 
                 pygame.draw.circle(screen, game_info_dict["piece_color"][turn],
                                    (posy * CELL_WIDTH + CELL_WIDTH / 2, posx * CELL_HEIGHT + 100 + CELL_HEIGHT / 2),
