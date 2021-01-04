@@ -9,14 +9,14 @@ if __name__ == '__main__':
     while True:
         if rows < 4:
             rows = int(input(
-                "The number of rows should be at least 4. Please give a valid number of columns/rows... "))
+                'The number of rows should be at least 4. Please give a valid number of columns/rows... '))
         elif columns < 4:
             columns = int(input(
-                "The number of columns should be at least 4. Please give a valid number of columns... "))
+                'The number of columns should be at least 4. Please give a valid number of columns... '))
         else:
             break
     if len(sys.argv) < 5:
-        firstPlayer = "human"
+        firstPlayer = 'human'
     else:
         firstPlayer = str(sys.argv[4])
 

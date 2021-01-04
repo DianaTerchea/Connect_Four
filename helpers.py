@@ -12,7 +12,7 @@ def create_board(rows, columns):
 def print_board(board):
     for i in range(len(board)):
         for j in range(len(board[0])):
-            print(board[i][j], end=" ")
+            print(board[i][j], end=' ')
         print()
 
 
@@ -74,10 +74,12 @@ def get_diagonal_points(board, row, column):
         for j in range(len(board[0])):
             if abs(row - i) == abs(column - j):
                 diagonal_points.append((i, j))
-    diagonal_points = [(i, j) for i in range(len(board)) for j in range(len(board[0])) if
+    diagonal_points = [(i, j) for i in range(len(board)) for j in
+                       range(len(board[0])) if
                        abs(row - i) == abs(column - j)]
     fdiagonal = [record for record in diagonal_points if
-                 abs(diagonal_points[0][0] - record[0]) == abs(diagonal_points[0][1] - record[1])]
+                 abs(diagonal_points[0][0] - record[0]) == abs(
+                     diagonal_points[0][1] - record[1])]
     bdiagonal = [i for i in diagonal_points if i not in fdiagonal]
     bdiagonal.append((row, column))
     return sort_list_of_tuples(fdiagonal), sort_list_of_tuples(bdiagonal)
@@ -96,8 +98,11 @@ def sort_list_of_tuples(list):
 
 
 def is_final_state(board, row, column):
-    if is_four_in_row(board, row, column) or is_four_in_column(board, row, column) or is_four_in_diagonal(board, row,
-                                                                                                          column):
+    if is_four_in_row(board, row, column) or is_four_in_column(board, row,
+                                                               column) or \
+        is_four_in_diagonal(
+        board, row,
+        column):
         return True
     return False
 
@@ -120,14 +125,15 @@ def is_terminal_node(board):
 def compute_score(window, player_piece):
     score = 0
     if window.count(player_piece) == 4:
-        # is four in a row
         score += 100
     elif window.count(player_piece) == 3 and window.count(0) == 1:
         score += 5
     elif window.count(player_piece) == 2 and window.count(0) == 2:
         score += 2
+    if window.count(1) == 2 and window.count(0) == 2:
+        score -= 1
     if window.count(1) == 3 and window.count(0) == 1:
-        score -= 4
+        score -= 100
     return score
 
 
@@ -157,14 +163,16 @@ def get_move_score(board, player_piece):
 
     for row_index in range(len(board) - 3):
         for column_index in range(len(board[0]) - 3):
-            window = [board[row_index + 3 - i][column_index + i] for i in range(4)]
+            window = [board[row_index + 3 - i][column_index + i] for i in
+                      range(4)]
             score += compute_score(window, player_piece)
 
     return score
 
 
-def minimax(board, depth, alpha, beta, maximizing_player):
-    available_moves = [column for column in range(len(board[0])) if is_valid_move(board, column)]
+def minimax_alpha_beta(board, depth, alpha, beta, maximizing_player):
+    available_moves = [column for column in range(len(board[0])) if
+                       is_valid_move(board, column)]
     shuffle(available_moves)
     is_terminal, row, column = is_terminal_node(board)
     if depth == 0 or is_terminal is True:
@@ -202,7 +210,7 @@ def minimax(board, depth, alpha, beta, maximizing_player):
             board_copy = deepcopy(board)
             board_copy, _ = make_move(board_copy, column, 1)
             _, new_score = minimax(board_copy, depth - 1, alpha, beta, True)
-            if new_score < value:
+            if new_score <= value:
                 value = new_score
                 col = column
             beta = min(beta, value)
