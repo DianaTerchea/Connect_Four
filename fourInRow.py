@@ -3,16 +3,23 @@ from graphics import play_game
 from helpers import create_board
 
 if __name__ == '__main__':
+    """
+    Here we receive from the command line the following args: game mode: 
+    "human(player vs player)", "computer"(computer vs player),
+    number of rows and columns, and which player will move first
+    """
     game_mode = str(sys.argv[1])
     rows = int(sys.argv[3])
     columns = int(sys.argv[2])
     while True:
         if rows < 4:
             rows = int(input(
-                'The number of rows should be at least 4. Please give a valid number of columns/rows... '))
+                'The number of rows should be at least 4. Please give a '
+                'valid number of columns/rows... '))
         elif columns < 4:
             columns = int(input(
-                'The number of columns should be at least 4. Please give a valid number of columns... '))
+                'The number of columns should be at least 4. Please give a '
+                'valid number of columns... '))
         else:
             break
     if len(sys.argv) < 5:
